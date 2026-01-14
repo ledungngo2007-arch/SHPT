@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luyện Thi KHCB1 - Phôi Thai Học (80 Câu)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
+        body { background-color: #f8fafc; font-family: 'Be Vietnam Pro', sans-serif; }
+        .slide-in { animation: slideIn 0.3s ease-out forwards; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .correct-pulse { animation: correctPulse 0.5s cubic-bezier(0.4, 0, 0.6, 1); }
+        @keyframes correctPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+        /* Toggle Switch */
+        .toggle-checkbox:checked { right: 0; border-color: #3b82f6; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #3b82f6; }
+        
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+        .shuffle-btn:active { transform: rotate(180deg); transition: transform 0.3s; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
+
+        // Dữ liệu 80 câu hỏi từ tài liệu KHCB1 giữa kỳ
+        const originalQuestionData = [
+            { id: 1, q: "Phản ứng vỏ không có đặc điểm nào sau đây?", a: ["Xảy ra khi tinh trùng gắn vào màng bào tương của noãn", "Xuất hiện lớp hạt vỏ ở vùng bào tương ngay dưới màng noãn", "Các hạt vỏ có dạng lysosom", "Men được giải phóng vào khoảng quanh noãn hoàng"], correct: 0 },
+            { id: 2, q: "Yếu tố nào KHÔNG giúp noãn vận chuyển về phía tử cung?", a: ["Sự co bóp của tầng cơ vòi trứng", "Lông chuyển tế bào biểu mô vòi trứng", "Đặc tính hấp thu nước màng bụng của vòi trứng", "Các chất tiết của các tế bào biểu mô vòi trứng"], correct: 3 },
+            { id: 3, q: "Tinh trùng chuyển động trong đường sinh dục nữ nhờ yếu tố nào?", a: ["Sự co bóp của tầng cơ đường sinh dục nữ", "Sự chuyển động của lông chuyển các tế bào biểu mô", "Sự cuốn theo nước màng bụng", "Sự hỗ trợ các chất tiết đường sinh dục nữ"], correct: 0 },
+            { id: 4, q: "Đặc tính nào KHÔNG thuộc fertilysin?", a: ["Tăng tính chuyển động của tinh trùng", "Ngưng kết tinh trùng trên bề mặt noãn", "Bản chất là protein", "Có tính đặc trưng cho loài"], correct: 2 },
+            { id: 5, q: "Receptor tinh trùng nguyên phát là:", a: ["mZP1", "mZP2", "mZP3", "mZP4"], correct: 2 },
+            { id: 6, q: "Receptor tinh trùng thứ phát là:", a: ["mZP1", "mZP2", "mZP3", "mZP4"], correct: 1 },
+            { id: 7, q: "Đặc điểm KHÔNG CÓ của protein gắn vào noãn nguyên phát:", a: ["Thành phần cấu trúc thấy trên bề mặt tinh trùng", "Gặp ở nơi noãn gắn vào", "Nhận biết mZP2", "Có ở lá ngoài của túi cực đầu"], correct: 2 },
+            { id: 8, q: "Đặc điểm KHÔNG CÓ của protein gắn vào noãn thứ phát:", a: ["Thành phần cấu trúc thấy trên bề mặt tinh trùng", "Gặp ở nơi noãn gắn vào", "Nhận biết mZP2", "Có ở lá ngoài của túi cực đầu"], correct: 3 },
+            { id: 9, q: "Nguồn gốc dịch phôi nang:", a: ["Từ máu mẹ", "Do niêm mạc tử cung", "Các tiểu phôi bào tiết ra", "Các đại phôi bào chế tiết"], correct: 1 },
+            { id: 10, q: "Sự phân cắt phôi KHÔNG mang đặc điểm nào?", a: ["Nối tiếp nhau liên tục hầu như không có gian kỳ", "Phôi bào sinh ra sau có kích thước nhỏ hơn phôi bào sinh ra nó", "Quá trình tổng hợp nhân và bào tương tích cực", "Xảy ra trong quá trình vận chuyển của trứng trong vòi trứng"], correct: 2 },
+            { id: 11, q: "Phôi nang KHÔNG có đặc điểm nào?", a: ["Có 30-32 phôi bào", "Đang vận chuyển trong vòi trứng", "Trong phôi xuất hiện khoang chứa dịch", "Cực phôi lá nuôi biệt hoá thành 2 lớp: lá nuôi tế bào và lá nuôi hợp bào"], correct: 0 },
+            { id: 12, q: "Đặc điểm KHÔNG CÓ của phôi dâu:", a: ["Xuất hiện vào khoảng ngày thứ 3 sau thụ tinh", "Có 12-16 phôi bào", "Đang được vận chuyển trong vòi trứng", "Có 2 cực: cực phôi và cực đối phôi"], correct: 3 },
+            { id: 13, q: "Nguồn gốc của màng ối:", a: ["Ngoại bì phôi (thượng bì phôi)", "Nội bì phôi (hạ bì phôi)", "Nội bì túi noãn hoàng", "Lá nuôi hợp bào"], correct: 0 },
+            { id: 14, q: "Đặc điểm KHÔNG CÓ của nước ối:", a: ["Khối lượng nước ối tăng dần", "Sản sinh và hấp thu nước ối là một quá trình không đổi", "Lượng nước ối được trao đổi với cơ thể mẹ qua tuần hoàn rau", "Do các tế bào lá nuôi chế tiết"], correct: 3 },
+            { id: 15, q: "Màng ối và khoang ối KHÔNG thực hiện chức năng nào?", a: ["Che chở cho phôi thai chống tác động cơ học", "Cho phép thai cử động tự do", "Làm cho thai không dính vào màng ối", "Hạn chế dị tật bẩm sinh cho thai"], correct: 3 },
+            { id: 16, q: "Cấu trúc KHÔNG hoàn toàn do ngoại bì thần kinh biệt hoá tạo thành:", a: ["Hệ thần kinh", "Võng mạc", "Tuyến yên", "Tuỷ thượng thận"], correct: 2 },
+            { id: 17, q: "Cấu trúc KHÔNG hoàn toàn do ngoại bì biệt hoá tạo thành:", a: ["Da và phụ thuộc da", "Hệ thần kinh", "Niệu đạo nam", "Võng mạc mắt"], correct: 2 },
+            { id: 18, q: "Túi noãn hoàng của phôi động vật có vú KHÔNG có đặc điểm và chức năng:", a: ["Phát sinh từ nội bì", "Nuôi dưỡng phôi", "Được tạo ra 2 lần", "Được bọc ngoài bằng trung bì lá tạng"], correct: 1 },
+            { id: 19, q: "Nguồn gốc của niệu nang:", a: ["Nội bì phôi", "Nội bì túi noãn hoàng", "Trung bì ngoài phôi", "Trung bì phôi"], correct: 1 },
+            { id: 20, q: "Nguồn gốc của dây rốn:", a: ["Cuống phôi (cuống bụng)", "Cuống noãn hoàng", "Cuống phôi và cuống noãn hoàng", "Cuống phôi và niệu nang"], correct: 2 },
+            { id: 21, q: "Dây rốn KHÔNG có đặc điểm:", a: ["Bọc ngoài là biểu mô màng ối", "Phần trung tâm là chất đông Wharton", "Có 1 động mạch và 2 tĩnh mạch rốn", "Nối rốn thai với bánh rau"], correct: 2 },
+            { id: 22, q: "Đặc điểm của phản ứng màng trong suốt:", a: ["Xảy ra trước phản ứng vỏ", "Men được giải phóng vào khoảng quanh noãn hoàng", "Giúp tinh trùng vượt qua màng trong suốt dễ dàng", "Làm mất khả năng xâm nhập của tinh trùng vào màng trong suốt"], correct: 3 },
+            { id: 23, q: "Vị trí KHÔNG có trung bì trong phôi ở phía đuôi đĩa phôi:", a: ["Màng họng", "Màng nhớp", "Túi noãn hoàng", "Niệu nang"], correct: 1 },
+            { id: 24, q: "Cấu trúc KHÔNG được tạo ra trong tuần thứ 3 của quá trình phát triển phôi:", a: ["Cuống bụng", "Niệu nang", "Ống thần kinh ruột", "Dây sống"], correct: 2 },
+            { id: 25, q: "Nguồn gốc của trung bì phôi:", a: ["Đường nguyên thuỷ", "Nút Hesen", "Dây sống", "Ống thần kinh – ruột"], correct: 0 },
+            { id: 26, q: "Sự kiện chính xảy ra trong tuần lễ thứ 4 của quá trình phát triển cá thể:", a: ["Sự tạo thành trung bì phôi", "Sự tạo ra dây sống và tấm trước dây sống", "Sự tạo ra ống thần kinh – ruột", "Sự tạo ra mầm các cơ quan"], correct: 3 },
+            { id: 27, q: "Sự biệt hoá của ngoại bì thần kinh KHÔNG trải qua giai đoạn:", a: ["Điểm thần kinh", "Tấm thần kinh", "Máng thần kinh", "Ống thần kinh"], correct: 0 },
+            { id: 28, q: "Các tế bào từ 2 bờ máng thần kinh di cư sang 2 bên tạo nên cấu trúc:", a: ["Mào thần kinh", "Hạch thần kinh", "Túi não", "Ống tuỷ"], correct: 0 },
+            { id: 29, q: "Thời điểm thuận lợi cho trứng làm tổ:", a: ["Trứng thụ tinh ở giai đoạn phôi nang", "Cực phôi lá nuôi biệt hoá thành 2 lớp", "Niêm mạc tử cung ở thời kỳ trước kinh", "Tất cả đều đúng"], correct: 3 },
+            { id: 30, q: "Đặc điểm KHÔNG xảy ra trong tuần lễ thứ 2 của quá trình phát triển phôi:", a: ["Phôi được vận chuyển trong vòi trứng", "Ngoại bì và nội bì phôi được tạo ra", "Túi noãn hoàng được tạo ra 2 lần", "Hình thành cuống phôi"], correct: 0 },
+            { id: 31, q: "Cuống phôi có nguồn gốc từ:", a: ["Trung bì màng ối", "Trung bì ngoài phôi", "Trung bì màng đệm", "Trung bì túi noãn hoàng"], correct: 1 },
+            { id: 32, q: "Đặc điểm của cuống phôi:", a: ["Chứa niệu nang", "Có nguồn gốc từ trung bì ngoài phôi", "Góp phần tạo ra dây rốn", "Tất cả đều đúng"], correct: 3 },
+            { id: 33, q: "Đặc điểm KHÔNG thuộc các nhung mao đệm nguyên phát:", a: ["Có mặt từ tuần thứ 3 của quá trình phát triển phôi", "Bọc kín mặt ngoài của phôi", "Trung mô màng đệm tạo thành trục nhung mao", "Phủ ngoài trục nhung mao là lá nuôi hợp bào"], correct: 2 },
+            { id: 34, q: "Đặc điểm của các nhung mao đệm thứ phát:", a: ["Có mặt từ đầu tuần thứ 3", "Bọc kín mặt ngoài của phôi", "Trung mô màng đệm tạo thành trục nhung mao", "Phủ ngoài trục nhung mao là lá nuôi hợp bào"], correct: 2 },
+            { id: 35, q: "Đặc điểm KHÔNG thuộc các nhung mao đệm thứ phát:", a: ["Trục nhung mao xuất hiện nhiều mạch máu", "Bọc kín mặt ngoài của phôi", "Màng đệm tạo thành trục nhung mao", "Phủ ngoài trục nhung mao là lá nuôi"], correct: 0 },
+            { id: 36, q: "Trong thời gian có thai, nội mạc thân tử cung được gọi là:", a: ["Màng rụng", "Màng rụng tử cung", "Màng rụng rau", "Tất cả đều đúng"], correct: 0 },
+            { id: 37, q: "Những biến đổi của màng rụng tử cung:", a: ["Lớp trên biến đổi tạo ra lớp đặc", "Lớp sâu tạo thành lớp xốp", "Các tế bào liên kết của lớp đệm biến thành tế bào rụng", "Tất cả các biến đổi trên"], correct: 3 },
+            { id: 38, q: "Đặc điểm của màng rụng trứng:", a: ["Là phần nội mạc tử cung được tái tạo sau làm tổ", "Lớp nông tạo thành lớp đặc", "Lớp sâu biển đổi tạo ra lớp xốp", "Dày hơn màng rụng rau và màng rụng tử cung"], correct: 0 },
+            { id: 39, q: "Những biến đổi của màng rụng rau:", a: ["Lớp nông biến đổi tạo ra lớp đặc", "Lớp sâu biến đổi tạo thành lớp xốp", "Các tế bào liên kết biến thành tế bào rụng", "Tất cả các biến đổi trên"], correct: 3 },
+            { id: 40, q: "Biến đổi KHÔNG xảy ra đối với màng rụng tử cung:", a: ["Lớp trên biến đổi tạo ra lớp đặc", "Lớp sâu tạo thành lớp xốp", "Các tế bào liên kết biến thành tế bào rụng", "Bị phá huỷ một phần bởi các nhung mao đệm"], correct: 3 },
+            { id: 41, q: "Màng rụng rau KHÔNG có đặc điểm cấu trúc và chức năng:", a: ["Góp phần tạo ra rau", "Lớp đặc bị phá huỷ tạo ra các khoảng gian nhung mao", "Tạo ra lớp đặc và lớp xốp", "Mỏng hơn màng rụng trứng"], correct: 3 },
+            { id: 42, q: "Vị trí bám của bánh rau:", a: ["Đáy tử cung", "Mặt trước hoặc mặt sau thân tử cung", "Cổ tử cung", "Tất cả các vị trí trên"], correct: 1 },
+            { id: 43, q: "Bánh rau KHÔNG có đặc điểm cấu tạo:", a: ["Mặt trông vào khoang ối được phủ bởi màng ối", "Do hai phần tạo thành: rau mẹ và rau thai", "Có hình đĩa, đường kính khoảng 20cm", "Phần rau mẹ có nguồn gốc từ màng rụng trứng"], correct: 3 },
+            { id: 44, q: "Từ tháng thứ tư, hàng rào rau KHÔNG có lớp cấu tạo:", a: ["Lá nuôi hợp bào", "Lá nuôi tế bào", "Mô liên kết của trục nhung mao đệm", "Nội mô mao mạch đệm"], correct: 1 },
+            { id: 45, q: "Chức năng rau KHÔNG thực hiện:", a: ["Chức năng trao đổi chất", "Chức năng nội tiết", "Chức năng bảo vệ", "Điều hoà thân nhiệt và giữ nhiệt độ ổn định cho thai"], correct: 3 },
+            { id: 46, q: "Vị trí thường xảy ra hiện tượng thụ tinh:", a: ["1/3 ngoài vòi trứng", "1/3 trong vòi trứng", "Trên mặt buồng trứng", "Nội mạc tử cung"], correct: 0 },
+            { id: 47, q: "Khi tinh trùng chui vào trong noãn, noãn ở giai đoạn:", a: ["Noãn bào I", "Noãn bào II", "Noãn chín", "Noãn nguyên bào"], correct: 1 },
+            { id: 48, q: "Sự thụ tinh được bắt đầu từ khi:", a: ["Tinh trùng vào bên trong đường sinh dục nữ", "Tinh trùng đi qua lớp tế bào nang", "Tinh trùng xuyên qua màng trong suốt", "Tinh trùng tiếp xúc với noãn"], correct: 3 }, // Note: Often defined as contact or penetration. Usually contact.
+            { id: 49, q: "Sự thụ tinh kết thúc khi:", a: ["Tinh trùng xuyên qua màng trong suốt", "Tinh trùng tiếp xúc với noãn", "Tinh trùng chui vào bên trong bào tương", "Tiền nhân đực và tiền nhân cái sát nhập lại"], correct: 3 },
+            { id: 50, q: "Đặc điểm KHÔNG xảy ra trong giai đoạn năng lực hoá tinh trùng:", a: ["Loại bỏ các glycoprotein để tạo nên các lỗ thủng", "Năng lực hóa tinh trùng ở tử cung hay vòi trứng", "Sự năng lực hoá tinh trùng nhờ các chất tiết", "Cực đầu tinh trùng giải phóng các men"], correct: 3 },
+            { id: 51, q: "Giai đoạn phản ứng cực đầu của tinh trùng KHÔNG có đặc điểm:", a: ["Xảy ra khi tinh trùng đã được năng lực hoá", "Xảy ra ngay sau khi tinh trùng vào đường sinh dục nữ", "Xảy ra sau khi tinh trùng gắn vào màng trong suốt", "Các men giúp tinh trùng đi xuyên qua màng trong suốt"], correct: 1 },
+            { id: 52, q: "Hệ quả của phản ứng vỏ:", a: ["Giúp tinh trùng đi xuyên qua màng trong suốt", "Phản ứng màng trong suốt", "Giúp tinh trùng vượt qua màng bào tương", "Tinh trùng chui vào bào tương của noãn"], correct: 1 },
+            { id: 53, q: "Hệ quả của phản ứng màng trong suốt:", a: ["Giúp tinh trùng vượt qua màng bào tương", "Giúp tinh trùng vượt qua màng trong suốt dễ dàng", "Làm cho màng trong suốt bị trơ, ngăn đa thụ tinh", "Noãn bào II hoàn thành phân bào 2"], correct: 2 },
+            { id: 54, q: "Tinh trùng vượt qua các tế bào nang nhờ:", a: ["Sự co bóp của tầng cơ đường sinh dục nữ", "Tinh trùng tiết ra men hyaluronidase", "Chất tiết của biểu mô đường sinh dục nữ", "Chất tiết của noãn"], correct: 1 },
+            { id: 55, q: "Tinh trùng đi qua màng trong suốt nhờ:", a: ["Phản ứng cực đầu", "Phản ứng màng trong suốt", "Phản ứng vỏ", "Tất cả đều đúng"], correct: 0 },
+            { id: 56, q: "Nguồn gốc của niệu nang (lặp lại):", a: ["Nội bì phôi", "Nội bì túi noãn hoàng", "Trung bì ngoài phôi", "Cuống bụng"], correct: 1 },
+            { id: 57, q: "Các tinh trùng khác không thể gắn vào noãn nhờ:", a: ["Phản ứng cực đầu", "Phản ứng màng trong suốt", "Phản ứng vỏ", "Tất cả đều đúng"], correct: 1 },
+            { id: 58, q: "Sự kiện KHÔNG xảy ra trong quá trình thụ tinh:", a: ["Tinh trùng qua lớp tế bào nang", "Noãn bào II hoàn thành giảm phân 2", "Tiền nhân đực và cái sát nhập", "Hợp tử phân cắt liên tục để tăng số lượng phôi bào"], correct: 3 },
+            { id: 59, q: "Sự thụ tinh KHÔNG mang ý nghĩa:", a: ["Tái lập bộ NST lưỡng bội", "Xác định giới tính di truyền", "Tăng khả năng di truyền của bố và mẹ", "Khởi động sự phân cắt phôi"], correct: 2 },
+            { id: 60, q: "Yếu tố KHÔNG ảnh hưởng đến sự thụ tinh:", a: ["Số lượng tinh trùng và noãn trong mỗi lần giao hợp", "Tỉ lệ tinh trùng bình thường", "Khả năng chuyển động của tinh trùng", "Thời điểm tinh trùng và noãn gặp nhau"], correct: 0 },
+            { id: 61, q: "Phôi dâu KHÔNG có đặc điểm:", a: ["Hình dáng giống quả dâu", "Khoảng 12-16 phôi bào", "Gồm khối đại nguyên bào và tiểu nguyên bào", "Bắt đầu làm tổ trong niêm mạc tử cung"], correct: 3 },
+            { id: 62, q: "Đặc điểm KHÔNG có của phôi nang:", a: ["Xuất hiện khoang chứa dịch trong phôi", "Gồm 2 cực: cực phôi và cực đối phôi", "Không còn màng trong suốt", "Xung quanh phôi lá nuôi biệt hoá thành 2 lớp"], correct: 2 },
+            { id: 63, q: "Quá trình KHÔNG xảy ra trong tuần phát triển đầu tiên của phôi:", a: ["Tạo phôi dâu", "Tạo phôi nang", "Trứng làm tổ trong niêm mạc tử cung", "Tạo nội bì và ngoại bì phôi"], correct: 3 },
+            { id: 64, q: "Thành phần KHÔNG thuộc trung bì trong phôi:", a: ["Trung bì màng ối", "Trung bì cận trục", "Trung bì bên", "Trung bì trung gian"], correct: 0 },
+            { id: 65, q: "Nguồn gốc của hệ tiết niệu và hệ sinh dục:", a: ["Trung bì cận trục", "Trung bì bên", "Trung bì trung gian", "Trung bì màng đệm"], correct: 2 },
+            { id: 66, q: "Mô cơ có nguồn gốc từ:", a: ["Trung bì cận trục", "Trung bì bên", "Trung bì trung gian", "Trung bì màng đệm"], correct: 0 }, // Paraxial mesoderm -> myotome
+            { id: 67, q: "Cấu trúc KHÔNG có nguồn gốc hoàn toàn từ trung bì:", a: ["Mô liên kết chính thức, mô sụn, mô xương", "Mô cơ vân, mô cơ trơn và mô cơ tim", "Tuyến thượng thận", "Tinh hoàn, buồng trứng"], correct: 2 }, // Adrenal medulla is ectoderm
+            { id: 68, q: "Cấu trúc KHÔNG có nguồn gốc từ nội bì và ngoại bì:", a: ["Biểu mô đường hô hấp", "Biểu mô đường tiêu hoá", "Niệu đạo nữ", "Niệu đạo nam"], correct: 3 },
+            { id: 69, q: "Nguồn gốc của dây rốn (lặp lại):", a: ["Cuống bụng", "Cuống noãn hoàng", "Cuống bụng và cuống noãn hoàng", "Cuống bụng và niệu nang"], correct: 2 },
+            { id: 70, q: "Sự kiện KHÔNG xảy ra trong tuần phát triển thứ 2 của phôi:", a: ["Sự tạo mầm phôi (tuần 3)", "Sự tạo khoang ối và màng ối", "Sự tạo túi noãn hoàng nguyên phát", "Sự tạo túi noãn hoàng thứ phát"], correct: 0 },
+            { id: 71, q: "Sự kiện xảy ra trong tuần phát triển thứ 2 của phôi:", a: ["Trứng bắt đầu làm tổ trong niêm mạc tử cung", "Trứng di chuyển vào khoang tử cung", "Tạo ra nội bì và ngoại bì phôi", "Tạo ra trung bì phôi"], correct: 2 },
+            { id: 72, q: "Sự kiện KHÔNG xảy ra trong tuần phát triển thứ 2 của phôi:", a: ["Tạo ra bản phôi lưỡng bì", "Tạo khoang ngoài phôi", "Tạo ra khoang ối và màng ối", "Tạo ra đường nguyên thuỷ"], correct: 3 },
+            { id: 73, q: "Thời điểm tạo ngoại bì và nội bì trong quá trình phát triển của phôi:", a: ["Ngày thứ 6", "Ngày thứ 7", "Ngày thứ 8", "Ngày thứ 9"], correct: 2 },
+            { id: 74, q: "Thời điểm tạo ra khoang ối và màng ối trong quá trình phát triển của phôi:", a: ["Ngày thứ 6", "Ngày thứ 7", "Ngày thứ 8", "Ngày thứ 9"], correct: 2 },
+            { id: 75, q: "Thời điểm tạo ra túi noãn hoàng nguyên phát trong quá trình phát triển của phôi:", a: ["Ngày thứ 6", "Ngày thứ 7", "Ngày thứ 8", "Ngày thứ 9"], correct: 3 },
+            { id: 76, q: "Thời điểm tạo ra trung bì ngoài phôi và khoang ngoài phôi:", a: ["Ngày thứ 9 và 10", "Ngày thứ 10 và 11", "Ngày thứ 11 và 12", "Ngày thứ 12 và 13"], correct: 2 },
+            { id: 77, q: "Thời điểm tạo ra túi noãn hoàng thứ phát:", a: ["Ngày thứ 11", "Ngày thứ 12", "Ngày thứ 13", "Ngày thứ 14"], correct: 2 },
+            { id: 78, q: "Thành phần KHÔNG tham gia cấu trúc của màng đệm:", a: ["Lá nuôi tế bào", "Lá nuôi hợp bào", "Trung bì màng ối", "Trung bì màng đệm"], correct: 2 },
+            { id: 79, q: "Sự kiện chính xảy ra ở đầu tuần thứ 3 trong quá trình phát triển của phôi:", a: ["Sự xuất hiện đường nguyên thuỷ", "Sự tạo ra túi noãn hoàng thứ phát", "Sự tạo ra trung bì màng đệm", "Sự tạo ra mầm các cơ quan"], correct: 0 },
+            { id: 80, q: "Vị trí KHÔNG có trung bì phôi ở đầu đĩa phôi:", a: ["Màng họng", "Màng nhớp", "Túi noãn hoàng", "Niệu nang"], correct: 0 }
+        ];
+
+        // Hàm trộn mảng
+        const shuffleArray = (array) => {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        };
+
+        const App = () => {
+            const [questions, setQuestions] = useState(originalQuestionData);
+            const [currentIdx, setCurrentIdx] = useState(0);
+            const [userAnswers, setUserAnswers] = useState({});
+            const [isAutoNext, setIsAutoNext] = useState(true);
+            const [isShuffleAnswers, setIsShuffleAnswers] = useState(false);
+            const timerRef = useRef(null);
+
+            useEffect(() => {
+                return () => {
+                    if (timerRef.current) clearTimeout(timerRef.current);
+                };
+            }, []);
+
+            const resetAndShuffle = () => {
+                if (timerRef.current) clearTimeout(timerRef.current);
+                
+                let newQuestionList = shuffleArray(originalQuestionData);
+
+                if (isShuffleAnswers) {
+                    newQuestionList = newQuestionList.map(q => {
+                        const answersWithStatus = q.a.map((ans, idx) => ({
+                            text: ans,
+                            isCorrect: idx === q.correct
+                        }));
+                        const shuffledAnswers = shuffleArray(answersWithStatus);
+                        return {
+                            ...q,
+                            a: shuffledAnswers.map(item => item.text),
+                            correct: shuffledAnswers.findIndex(item => item.isCorrect)
+                        };
+                    });
+                }
+
+                setQuestions(newQuestionList);
+                setCurrentIdx(0);
+                setUserAnswers({});
+                window.scrollTo(0, 0);
+            };
+
+            const handleAnswer = (idx) => {
+                if (userAnswers[currentIdx] !== undefined) return;
+
+                setUserAnswers(prev => ({ ...prev, [currentIdx]: idx }));
+
+                if (isAutoNext && currentIdx < questions.length - 1) {
+                    timerRef.current = setTimeout(() => {
+                        setCurrentIdx(prev => prev + 1);
+                    }, 1000);
+                }
+            };
+
+            const stats = useMemo(() => {
+                let correct = 0, completed = 0;
+                Object.keys(userAnswers).forEach(key => {
+                    const qId = parseInt(key);
+                    if (userAnswers[qId] === questions[qId].correct) correct++;
+                    completed++;
+                });
+                return { correct, completed, total: questions.length };
+            }, [userAnswers, questions]);
+
+            const currentQ = questions[currentIdx];
+            const isAnswered = userAnswers[currentIdx] !== undefined;
+            const isCorrect = isAnswered && userAnswers[currentIdx] === currentQ.correct;
+
+            if (stats.completed === stats.total) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50">
+                        <div className="max-w-2xl w-full bg-white rounded-3xl p-8 shadow-2xl text-center border-t-8 border-blue-600">
+                            <h2 className="text-4xl font-extrabold text-slate-800 mb-6">KẾT QUẢ BÀI THI</h2>
+                            <div className="flex justify-center gap-8 my-8">
+                                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                                    <div className="text-slate-500 text-sm uppercase tracking-widest mb-1">Đúng</div>
+                                    <div className="text-4xl font-black text-green-600">{stats.correct}/{stats.total}</div>
+                                </div>
+                                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                                    <div className="text-slate-500 text-sm uppercase tracking-widest mb-1">Tỷ lệ</div>
+                                    <div className="text-4xl font-black text-blue-600">{Math.round((stats.correct/stats.total)*100)}%</div>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={resetAndShuffle} 
+                                className="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-200 text-lg flex items-center justify-center gap-2"
+                            >
+                                <i className="fas fa-random"></i> TRỘN ĐỀ & LÀM LẠI
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen flex flex-col md:flex-row bg-slate-50">
+                    <aside className="w-full md:w-80 bg-white border-r border-slate-200 flex flex-col h-[30vh] md:h-screen sticky top-0 z-10 shadow-lg md:shadow-none">
+                        <div className="p-5 border-b border-slate-100">
+                            <div className="flex justify-between items-center mb-4">
+                                <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                    <i className="fas fa-microscope text-blue-600"></i> KHCB1: Phôi Thai
+                                </h1>
+                                <button 
+                                    onClick={resetAndShuffle}
+                                    title="Trộn câu hỏi và làm lại từ đầu"
+                                    className="w-8 h-8 rounded-full bg-slate-100 hover:bg-blue-100 text-slate-500 hover:text-blue-600 flex items-center justify-center transition-all shuffle-btn"
+                                >
+                                    <i className="fas fa-random"></i>
+                                </button>
+                            </div>
+                            <div className="bg-slate-100 rounded-xl p-3 flex justify-between items-center text-sm font-semibold text-slate-600">
+                                <span><i className="fas fa-check-circle text-green-500 mr-1"></i> {stats.correct}/{stats.completed}</span>
+                                <span className="text-slate-400">|</span>
+                                <span>{Math.round((stats.completed / stats.total) * 100)}%</span>
+                            </div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
+                            <div className="grid grid-cols-5 gap-2">
+                                {questions.map((_, idx) => {
+                                    const status = userAnswers[idx];
+                                    let btnClass = "h-9 rounded-lg text-xs font-bold transition-all duration-200 ";
+                                    if (status === undefined) {
+                                        btnClass += idx === currentIdx 
+                                            ? "bg-blue-600 text-white shadow-lg ring-2 ring-blue-200 transform scale-105" 
+                                            : "bg-slate-50 text-slate-500 hover:bg-slate-200 border border-slate-100";
+                                    } else {
+                                        const isQCorrect = status === questions[idx].correct;
+                                        btnClass += isQCorrect ? "bg-green-500 text-white" : "bg-red-500 text-white";
+                                        if (idx === currentIdx) btnClass += " ring-2 ring-slate-400 transform scale-105";
+                                    }
+                                    return (
+                                        <button key={idx} onClick={() => { if(timerRef.current) clearTimeout(timerRef.current); setCurrentIdx(idx); }} className={btnClass}>
+                                            {idx + 1}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </aside>
+
+                    <main className="flex-1 p-4 md:p-8 flex flex-col h-[70vh] md:h-screen overflow-hidden">
+                        <div className="flex flex-col md:flex-row justify-between items-center mb-6 bg-white p-4 rounded-2xl shadow-sm border border-slate-100 gap-4">
+                            <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">
+                                Câu hỏi {currentIdx + 1}
+                            </span>
+                            <div className="flex items-center gap-6">
+                                <div className="flex items-center gap-3" title="Đảo lộn vị trí đáp án khi làm lại đề">
+                                    <span className={`text-sm font-semibold ${isShuffleAnswers ? 'text-purple-600' : 'text-slate-400'}`}>
+                                        <i className="fas fa-random mr-1"></i> Trộn đáp án
+                                    </span>
+                                    <div className="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
+                                        <input type="checkbox" className="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 left-0" checked={isShuffleAnswers} onChange={() => setIsShuffleAnswers(!isShuffleAnswers)} />
+                                        <label className={`toggle-label block overflow-hidden h-5 rounded-full cursor-pointer transition-colors duration-300 ${isShuffleAnswers ? 'bg-purple-500' : 'bg-slate-300'}`}></label>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <span className={`text-sm font-semibold ${isAutoNext ? 'text-blue-600' : 'text-slate-400'}`}>
+                                        <i className="fas fa-bolt mr-1"></i> Auto Next
+                                    </span>
+                                    <div className="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
+                                        <input type="checkbox" className="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 left-0" checked={isAutoNext} onChange={() => setIsAutoNext(!isAutoNext)} />
+                                        <label className={`toggle-label block overflow-hidden h-5 rounded-full cursor-pointer transition-colors duration-300 ${isAutoNext ? 'bg-blue-500' : 'bg-slate-300'}`}></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex-1 bg-white rounded-3xl shadow-xl p-6 md:p-10 border border-slate-100 overflow-y-auto custom-scrollbar relative">
+                            <div className="max-w-3xl mx-auto slide-in">
+                                <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-8 leading-snug">
+                                    {currentQ.q}
+                                </h2>
+                                <div className="space-y-4">
+                                    {currentQ.a.map((opt, optIdx) => {
+                                        let optionClass = "w-full p-5 rounded-2xl border-2 text-left relative transition-all duration-300 flex items-center gap-4 group ";
+                                        if (!isAnswered) {
+                                            optionClass += "border-slate-100 hover:border-blue-400 hover:bg-blue-50 hover:shadow-md cursor-pointer";
+                                        } else {
+                                            if (optIdx === currentQ.correct) {
+                                                optionClass += "border-green-500 bg-green-50 text-green-900 shadow-inner correct-pulse";
+                                            } else if (optIdx === userAnswers[currentIdx]) {
+                                                optionClass += "border-red-500 bg-red-50 text-red-900 opacity-90";
+                                            } else {
+                                                optionClass += "border-slate-50 opacity-40 grayscale";
+                                            }
+                                        }
+                                        return (
+                                            <button key={optIdx} disabled={isAnswered} onClick={() => handleAnswer(optIdx)} className={optionClass}>
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-colors ${isAnswered && optIdx === currentQ.correct ? 'bg-green-600 text-white' : isAnswered && optIdx === userAnswers[currentIdx] ? 'bg-red-500 text-white' : 'bg-slate-200 text-slate-500 group-hover:bg-blue-500 group-hover:text-white'}`}>
+                                                    {String.fromCharCode(65 + optIdx)}
+                                                </div>
+                                                <span className="font-medium text-lg">{opt}</span>
+                                                {isAnswered && optIdx === currentQ.correct && (
+                                                    <i className="fas fa-check-circle text-green-600 text-xl ml-auto animate-bounce"></i>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                {isAnswered && !isCorrect && (
+                                    <div className="mt-8 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 rounded-r-lg shadow-sm slide-in">
+                                        <p className="font-bold mb-1"><i className="fas fa-info-circle mr-2"></i> Đáp án đúng là:</p>
+                                        <p className="text-lg">{String.fromCharCode(65 + currentQ.correct)}. {currentQ.a[currentQ.correct]}</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="mt-6 flex justify-between items-center max-w-3xl mx-auto w-full px-4">
+                            <button onClick={() => { if(timerRef.current) clearTimeout(timerRef.current); setCurrentIdx(Math.max(0, currentIdx - 1)); }} disabled={currentIdx === 0} className="text-slate-500 hover:text-blue-600 font-semibold disabled:opacity-30 transition-colors">
+                                <i className="fas fa-arrow-left mr-2"></i> Câu trước
+                            </button>
+                            <button onClick={() => { if(timerRef.current) clearTimeout(timerRef.current); setCurrentIdx(Math.min(questions.length - 1, currentIdx + 1)); }} disabled={currentIdx === questions.length - 1} className="bg-slate-800 hover:bg-black text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center gap-2">
+                                Câu tiếp theo <i className="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
